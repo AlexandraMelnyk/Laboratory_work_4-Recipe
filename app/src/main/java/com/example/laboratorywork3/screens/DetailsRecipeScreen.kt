@@ -18,10 +18,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.laboratorywork3.viewmodel.RecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,7 +34,8 @@ fun DetailsRecipeScreen(
     recipeId: Int
 ) {
 
-    val recipe = viewModel.getRecipe(recipeId)
+    val recipe by viewModel.getRecipeById(recipeId)
+        .collectAsStateWithLifecycle(initialValue = null)
 
     if (recipe == null) {
 
@@ -91,6 +94,8 @@ fun DetailsRecipeScreen(
 
     }
 
+    val currentRecipe = recipe!!
+
     Scaffold(
 
         topBar = {
@@ -137,7 +142,7 @@ fun DetailsRecipeScreen(
 
                     Text(
 
-                        text = recipe.title,
+                        text = currentRecipe.title,
 
                         style = MaterialTheme.typography.headlineSmall,
 
@@ -148,50 +153,38 @@ fun DetailsRecipeScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-
-                        text = "Час приготування:",
-
+                        "Час приготування:",
                         fontWeight = FontWeight.Bold
-
                     )
 
-                    Text("${recipe.cookingTime} хв")
+                    Text("${currentRecipe.cookingTime} хв")
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-
-                        text = "Складність:",
-
+                        "Складність:",
                         fontWeight = FontWeight.Bold
-
                     )
 
-                    Text(recipe.difficulty)
+                    Text(currentRecipe.difficulty)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-
-                        text = "Інгредієнти:",
-
+                        "Інгредієнти:",
                         fontWeight = FontWeight.Bold
-
                     )
 
-                    Text(recipe.ingredients)
+                    Text(currentRecipe.ingredients)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-
-                        text = "Інструкція:",
-
+                        "Інструкція:",
                         fontWeight = FontWeight.Bold
-
                     )
 
-                    Text(recipe.instructions)
+                    Text(currentRecipe.instructions)
 
                 }
 
@@ -203,7 +196,7 @@ fun DetailsRecipeScreen(
 
                 onClick = {
 
-                    navController.navigate("edit/${recipe.id}")
+                    navController.navigate("edit/${currentRecipe.id}")
 
                 }
 
@@ -219,7 +212,7 @@ fun DetailsRecipeScreen(
 
                 onClick = {
 
-                    viewModel.deleteRecipe(recipe.id)
+                    viewModel.deleteRecipe(currentRecipe)
 
                     navController.popBackStack()
 

@@ -1,111 +1,62 @@
 package com.example.laboratorywork3.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.laboratorywork3.model.Recipe
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import com.example.laboratorywork3.data.local.RecipeEntity
+import com.example.laboratorywork3.data.repository.RecipeRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class RecipeViewModel : ViewModel() {
+class RecipeViewModel(
+    private val repository: RecipeRepository
+) : ViewModel() {
 
-    private val _recipes = MutableStateFlow(
-
-        listOf(
-
-            Recipe(
-                1,
-                "Паста Карбонара",
-                "Паста, яйця, бекон, пармезан",
-                "Відварити пасту. Обсмажити бекон. Змішати всі інгредієнти.",
-                25,
-                "Легко"
-            ),
-
-            Recipe(
-                2,
-                "Цезар з куркою",
-                "Курка, салат, сухарики, сир, соус",
-                "Обсмажити курку. Змішати всі інгредієнти.",
-                15,
-                "Легко"
-            ),
-
-            Recipe(
-                3,
-                "Шоколадний торт",
-                "Борошно, какао, яйця, масло",
-                "Замісити тісто. Випікати 60 хв.",
-                60,
-                "Середньо"
-            )
-
-        )
-
+    val recipes = repository.recipes.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
 
-    val recipes = _recipes.asStateFlow()
-
-    private var nextId = 4
-
-    private fun difficulty(time: Int): String {
-
-        return when {
-
-            time <= 30 -> "Легко"
-
-            time <= 60 -> "Середньо"
-
-            else -> "Складно"
-        }
-
-    }
+    fun getRecipeById(id: Int) =
+        repository.getRecipeById(id)
 
     fun addRecipe(
-
         title: String,
-
         ingredients: String,
-
         instructions: String,
-
-        time: Int
-
+        cookingTime: Int
     ) {
 
-        val recipe = Recipe(
+        val difficulty = when {
 
-            id = nextId++,
+            cookingTime <= 30 -> "Легко"
 
-            title = title,
+            cookingTime <= 60 -> "Середньо"
 
-            ingredients = ingredients,
-
-            instructions = instructions,
-
-            cookingTime = time,
-
-            difficulty = difficulty(time)
-
-        )
-
-        _recipes.value = _recipes.value + recipe
-
-    }
-
-    fun getRecipe(id: Int): Recipe? {
-
-        return _recipes.value.find {
-
-            it.id == id
+            else -> "Складно"
 
         }
 
-    }
+        viewModelScope.launch {
 
-    fun deleteRecipe(id: Int) {
+            repository.addRecipe(
 
-        _recipes.value = _recipes.value.filter {
+                RecipeEntity(
 
-            it.id != id
+                    title = title,
+
+                    ingredients = ingredients,
+
+                    instructions = instructions,
+
+                    cookingTime = cookingTime,
+
+                    difficulty = difficulty
+
+                )
+
+            )
 
         }
 
@@ -121,15 +72,27 @@ class RecipeViewModel : ViewModel() {
 
         instructions: String,
 
-        time: Int
+        cookingTime: Int
 
     ) {
 
-        _recipes.value = _recipes.value.map {
+        val difficulty = when {
 
-            if (it.id == id)
+            cookingTime <= 30 -> "Легко"
 
-                it.copy(
+            cookingTime <= 60 -> "Середньо"
+
+            else -> "Складно"
+
+        }
+
+        viewModelScope.launch {
+
+            repository.updateRecipe(
+
+                RecipeEntity(
+
+                    id = id,
 
                     title = title,
 
@@ -137,15 +100,23 @@ class RecipeViewModel : ViewModel() {
 
                     instructions = instructions,
 
-                    cookingTime = time,
+                    cookingTime = cookingTime,
 
-                    difficulty = difficulty(time)
+                    difficulty = difficulty
 
                 )
 
-            else
+            )
 
-                it
+        }
+
+    }
+
+    fun deleteRecipe(recipe: RecipeEntity) {
+
+        viewModelScope.launch {
+
+            repository.deleteRecipe(recipe)
 
         }
 

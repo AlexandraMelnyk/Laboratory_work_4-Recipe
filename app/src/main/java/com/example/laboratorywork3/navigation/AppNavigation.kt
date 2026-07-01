@@ -30,9 +30,9 @@ fun AppNavigation(
 
             RecipesListScreen(
 
-                navController = navController,
+                navController,
 
-                viewModel = viewModel
+                viewModel
 
             )
 
@@ -42,41 +42,11 @@ fun AppNavigation(
 
             AddRecipeScreen(
 
-                navController = navController,
+                navController,
 
-                viewModel = viewModel,
+                viewModel,
 
-                recipeId = null
-
-            )
-
-        }
-
-        composable(
-
-            route = "details/{recipeId}",
-
-            arguments = listOf(
-
-                navArgument("recipeId") {
-
-                    type = NavType.IntType
-
-                }
-
-            )
-
-        ) {
-
-            val id = it.arguments?.getInt("recipeId") ?: 0
-
-            DetailsRecipeScreen(
-
-                navController = navController,
-
-                viewModel = viewModel,
-
-                recipeId = id
+                null
 
             )
 
@@ -98,15 +68,49 @@ fun AppNavigation(
 
         ) {
 
-            val id = it.arguments?.getInt("recipeId") ?: 0
+            val id =
+
+                it.arguments?.getInt("recipeId")
 
             AddRecipeScreen(
 
-                navController = navController,
+                navController,
 
-                viewModel = viewModel,
+                viewModel,
 
-                recipeId = id
+                id
+
+            )
+
+        }
+
+        composable(
+
+            route = "details/{recipeId}",
+
+            arguments = listOf(
+
+                navArgument("recipeId") {
+
+                    type = NavType.IntType
+
+                }
+
+            )
+
+        ) {
+
+            val id =
+
+                it.arguments?.getInt("recipeId") ?: 0
+
+            DetailsRecipeScreen(
+
+                navController,
+
+                viewModel,
+
+                id
 
             )
 

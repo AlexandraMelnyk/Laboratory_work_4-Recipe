@@ -14,15 +14,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.laboratorywork3.viewmodel.RecipeViewModel
 
@@ -34,36 +29,26 @@ fun AddRecipeScreen(
     recipeId: Int?
 ) {
 
-    var title by remember {
-        mutableStateOf("")
+    val recipeFlow = remember(recipeId) {
+        recipeId?.let { viewModel.getRecipeById(it) }
     }
 
-    var ingredients by remember {
-        mutableStateOf("")
-    }
+    val recipe by recipeFlow?.collectAsStateWithLifecycle(initialValue = null)
+        ?: remember { mutableStateOf(null) }
 
-    var instructions by remember {
-        mutableStateOf("")
-    }
+    var title by remember { mutableStateOf("") }
+    var ingredients by remember { mutableStateOf("") }
+    var instructions by remember { mutableStateOf("") }
+    var cookingTime by remember { mutableStateOf("") }
 
-    var cookingTime by remember {
-        mutableIntStateOf(0)
-    }
+    LaunchedEffect(recipe) {
 
-    LaunchedEffect(recipeId) {
+        recipe?.let {
 
-        if (recipeId != null) {
-
-            val recipe = viewModel.getRecipe(recipeId)
-
-            recipe?.let {
-
-                title = it.title
-                ingredients = it.ingredients
-                instructions = it.instructions
-                cookingTime = it.cookingTime
-
-            }
+            title = it.title
+            ingredients = it.ingredients
+            instructions = it.instructions
+            cookingTime = it.cookingTime.toString()
 
         }
 
@@ -78,11 +63,8 @@ fun AddRecipeScreen(
                 title = {
 
                     if (recipeId == null)
-
                         Text("Новий рецепт")
-
                     else
-
                         Text("Редагування рецепту")
 
                 }
@@ -115,13 +97,13 @@ fun AddRecipeScreen(
 
                 },
 
-                modifier = Modifier.fillMaxWidth(),
-
                 label = {
 
                     Text("Назва рецепту")
 
-                }
+                },
+
+                modifier = Modifier.fillMaxWidth()
 
             )
 
@@ -135,13 +117,13 @@ fun AddRecipeScreen(
 
                 },
 
-                modifier = Modifier.fillMaxWidth(),
-
                 label = {
 
                     Text("Інгредієнти")
 
-                }
+                },
+
+                modifier = Modifier.fillMaxWidth()
 
             )
 
@@ -155,53 +137,57 @@ fun AddRecipeScreen(
 
                 },
 
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-
                 label = {
 
                     Text("Інструкція")
 
-                }
+                },
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
 
             )
 
             OutlinedTextField(
 
-                value = cookingTime.toString(),
+                value = cookingTime,
 
                 onValueChange = {
 
-                    cookingTime = it.toIntOrNull() ?: 0
+                    cookingTime = it
 
                 },
-
-                modifier = Modifier.fillMaxWidth(),
 
                 label = {
 
                     Text("Час приготування (хв)")
 
-                }
+                },
+
+                modifier = Modifier.fillMaxWidth()
 
             )
 
             Button(
 
+                modifier = Modifier.fillMaxWidth(),
+
                 onClick = {
+
+                    val time = cookingTime.toIntOrNull() ?: 0
 
                     if (recipeId == null) {
 
                         viewModel.addRecipe(
 
-                            title,
+                            title = title,
 
-                            ingredients,
+                            ingredients = ingredients,
 
-                            instructions,
+                            instructions = instructions,
 
-                            cookingTime
+                            cookingTime = time
 
                         )
 
@@ -209,15 +195,15 @@ fun AddRecipeScreen(
 
                         viewModel.updateRecipe(
 
-                            recipeId,
+                            id = recipeId,
 
-                            title,
+                            title = title,
 
-                            ingredients,
+                            ingredients = ingredients,
 
-                            instructions,
+                            instructions = instructions,
 
-                            cookingTime
+                            cookingTime = time
 
                         )
 
@@ -225,9 +211,7 @@ fun AddRecipeScreen(
 
                     navController.popBackStack()
 
-                },
-
-                modifier = Modifier.fillMaxWidth()
+                }
 
             ) {
 
@@ -243,13 +227,13 @@ fun AddRecipeScreen(
 
             Button(
 
+                modifier = Modifier.fillMaxWidth(),
+
                 onClick = {
 
                     navController.popBackStack()
 
-                },
-
-                modifier = Modifier.fillMaxWidth()
+                }
 
             ) {
 

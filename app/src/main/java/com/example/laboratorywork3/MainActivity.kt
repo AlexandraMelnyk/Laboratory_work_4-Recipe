@@ -3,33 +3,40 @@ package com.example.laboratorywork3
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.laboratorywork3.ui.theme.LaboratoryWork3Theme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.laboratorywork3.data.local.DatabaseProvider
+import com.example.laboratorywork3.data.repository.RecipeRepository
 import com.example.laboratorywork3.navigation.AppNavigation
+import com.example.laboratorywork3.ui.theme.LaboratoryWork3Theme
 import com.example.laboratorywork3.viewmodel.RecipeViewModel
+import com.example.laboratorywork3.viewmodel.RecipeViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+
+        val database = DatabaseProvider.getDatabase(applicationContext)
+
+        val repository = RecipeRepository(database.recipeDao())
+
+        val factory = RecipeViewModelFactory(repository)
 
         setContent {
 
             LaboratoryWork3Theme {
 
-                val recipeViewModel: RecipeViewModel = viewModel()
+                val recipeViewModel: RecipeViewModel = viewModel(
+                    factory = factory
+                )
 
                 AppNavigation(recipeViewModel)
 
             }
+
         }
+
     }
+
 }
